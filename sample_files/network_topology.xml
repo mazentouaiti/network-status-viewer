@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<network>
+  <topology>
+    <devices>
+      <device name="Router0" type="Router">
+        <interfaces>
+          <interface name="FastEthernet0/0" ip="192.168.1.1" />
+          <interface name="Serial0/0/0" ip="10.0.0.1" />
+        </interfaces>
+      </device>
+      <device name="Switch0" type="Switch">
+        <interfaces>
+          <interface name="VLAN1" ip="192.168.1.2" />
+        </interfaces>
+      </device>
+      <device name="PC0" type="PC">
+        <interfaces>
+          <interface name="FastEthernet0" ip="192.168.1.10" />
+        </interfaces>
+      </device>
+      <device name="PC1" type="PC">
+        <interfaces>
+          <interface name="FastEthernet0" ip="192.168.1.11" />
+        </interfaces>
+      </device>
+      <device name="Server0" type="Server">
+        <interfaces>
+          <interface name="FastEthernet0" ip="192.168.1.100" />
+        </interfaces>
+      </device>
+      <device name="Router1" type="Router">
+        <interfaces>
+          <interface name="FastEthernet0/0" ip="192.168.2.1" />
+          <interface name="Serial0/0/0" ip="10.0.0.2" />
+        </interfaces>
+      </device>
+      <device name="PC2" type="PC">
+        <interfaces>
+          <interface name="FastEthernet0" ip="192.168.2.10" />
+        </interfaces>
+      </device>
+    </devices>
+    <links>
+      <link source="Router0" target="Switch0" />
+      <link source="Switch0" target="PC0" />
+      <link source="Switch0" target="PC1" />
+      <link source="Switch0" target="Server0" />
+      <link source="Router0" target="Router1" />
+      <link source="Router1" target="PC2" />
+    </links>
+  </topology>
+</network>

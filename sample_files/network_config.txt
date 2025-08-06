@@ -1,0 +1,54 @@
+Network Configuration Export from Cisco Packet Tracer
+=======================================================
+
+Device Information:
+-------------------
+
+Router0
+  Interface FastEthernet0/0: 192.168.1.1
+  Interface Serial0/0/0: 10.0.0.1
+  Status: Active
+
+Switch0
+  Interface VLAN1: 192.168.1.2
+  Status: Active
+
+PC0
+  FastEthernet0: 192.168.1.10
+  Default Gateway: 192.168.1.1
+  Status: Connected
+
+PC1
+  FastEthernet0: 192.168.1.11
+  Default Gateway: 192.168.1.1
+  Status: Connected
+
+Server0
+  FastEthernet0: 192.168.1.100
+  Default Gateway: 192.168.1.1
+  Status: Online
+
+Router1
+  Interface FastEthernet0/0: 192.168.2.1
+  Interface Serial0/0/0: 10.0.0.2
+  Status: Active
+
+PC2
+  FastEthernet0: 192.168.2.10
+  Default Gateway: 192.168.2.1
+  Status: Connected
+
+Connections:
+------------
+Router0 FastEthernet0/0 connected to Switch0 FastEthernet0/1
+Switch0 FastEthernet0/2 connected to PC0 FastEthernet0
+Switch0 FastEthernet0/3 connected to PC1 FastEthernet0
+Switch0 FastEthernet0/4 connected to Server0 FastEthernet0
+Router0 Serial0/0/0 connected to Router1 Serial0/0/0
+Router1 FastEthernet0/0 connected to PC2 FastEthernet0
+
+Network Summary:
+---------------
+Total Devices: 7
+Total Links: 6
+Subnets: 192.168.1.0/24, 192.168.2.0/24, 10.0.0.0/30
