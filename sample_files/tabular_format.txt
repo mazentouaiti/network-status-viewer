@@ -1,0 +1,11 @@
+# Tabular format
+Device|Type|IP
+Router1|Router|192.168.1.1
+Switch1|Switch|
+PC1|PC|192.168.1.10
+PC2|PC|192.168.1.11
+
+# Connections
+Router1 - Switch1
+PC1 - Switch1
+PC2 - Switch1

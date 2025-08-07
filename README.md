@@ -5,7 +5,7 @@ A full-stack web application for parsing and visualizing network topologies from
 ## Features
 
 - 📁 **File Support**: Upload `.txt`, `.xml`, or `.pkt` files from Cisco Packet Tracer
-- 🔍 **Smart PKT Handling**: Automatic detection with export guidance for binary PKT files
+- � **PKT Conversion**: Automatic conversion of PKT files using PTExplorer technology
 - 📊 **Network Visualization**: Interactive topology graphs with device highlighting
 - 📋 **Device Management**: Search, filter, and export device information
 - 🔗 **Connection Analysis**: View and analyze network connections
@@ -20,12 +20,16 @@ A full-stack web application for parsing and visualizing network topologies from
 
 - ✅ **`.txt`** - Text exports from Cisco Packet Tracer
 - ✅ **`.xml`** - XML exports from Cisco Packet Tracer
+- ✅ **`.pkt`** - Binary PKT files (automatic conversion with PTExplorer)
 
-### With Export Guidance
+### PKT Conversion Features
 
-- 📦 **`.pkt`** - Binary PKT files (provides step-by-step export instructions)
+- 🔧 **Automatic Conversion**: PKT files are automatically converted to XML format
+- 🔄 **Multiple Methods**: Uses PTExplorer, ZIP extraction, and binary parsing
+- 📋 **Fallback Support**: Graceful handling when conversion tools aren't available
+- 📖 **Detailed Guidance**: Step-by-step instructions for manual export if needed
 
-> **Note**: PKT files are binary format and cannot be directly parsed. The application will guide you through exporting them as `.txt` or `.xml` files in Cisco Packet Tracer.
+> **New**: PKT files now support automatic conversion! Upload them directly and the system will convert them to a readable format using PTExplorer-based technology.
 
 ## Tech Stack
 
@@ -38,6 +42,7 @@ A full-stack web application for parsing and visualizing network topologies from
 ### Backend
 
 - Python FastAPI
+- PTExplorer-based PKT conversion
 - File upload and parsing
 - JSON API responses
 

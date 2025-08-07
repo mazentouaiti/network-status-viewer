@@ -1,0 +1,10 @@
+# Dash connection format
+# Device - IP assignments
+Router0 - 192.168.1.1
+PC1 - 192.168.1.10
+PC2 - 192.168.1.11
+
+# Connections
+Router0 - Switch0
+Switch0 - PC1
+Switch0 - PC2

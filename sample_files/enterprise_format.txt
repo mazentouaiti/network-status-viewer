@@ -1,0 +1,47 @@
+Network Topology Name: "Enterprise Branch Network"
+
+[Devices]
+Router: R1
+  Model: Cisco 2911
+  IP: 192.168.1.1/24
+  Interfaces:
+    - GigabitEthernet0/0: 192.168.1.1
+    - Serial0/0/0: 10.1.1.1
+
+Switch: S1
+  Model: Cisco 2960
+  VLANs:
+    - VLAN 10: Sales
+    - VLAN 20: IT
+
+PC: PC-Sales1
+  OS: Windows 10
+  IP: 192.168.1.10
+  MAC: 00:0C:29:4D:55:01
+  VLAN: 10
+
+PC: PC-IT1
+  OS: Windows 10
+  IP: 192.168.1.20
+  MAC: 00:0C:29:4D:55:02
+  VLAN: 20
+
+[Connections]
+R1 GigabitEthernet0/0 <-> S1 FastEthernet0/1
+S1 FastEthernet0/2 <-> PC-Sales1
+S1 FastEthernet0/3 <-> PC-IT1
+
+[Routing Table - R1]
+Destination: 192.168.1.0/24 → Interface: Gig0/0
+Destination: 10.1.1.0/30 → Interface: Serial0/0/0
+
+[Protocols]
+- DHCP: Enabled on VLAN 10
+- Static Route: 10.1.1.0/30 via Serial0/0/0
+- NAT: Not configured
+- DNS: 8.8.8.8
+
+[Simulation Summary]
+Ping Test: PC-Sales1 → R1: SUCCESS
+Ping Test: PC-IT1 → PC-Sales1: SUCCESS
+Packet Loss: 0%

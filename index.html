@@ -3,38 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A web-based tool for parsing and visualizing network topologies from Cisco Packet Tracer exports">
-    <meta name="author" content="Network Status Viewer">
+    <meta name="description" content="Advanced network topology analyzer supporting multiple formats including Cisco Packet Tracer">
+    <meta name="author" content="Network Status Viewer Pro">
     <link rel="manifest" href="manifest.json">
-    <title>Network Status Viewer</title>
+    <title>Network Topology Analyzer Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
     <script src="https://unpkg.com/cytoscape-cola@2.5.1/cytoscape-cola.js"></script>
     <script src="https://unpkg.com/webcola@3.4.0/WebCola/cola.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom animations and styles */
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
         .upload-area {
-            border: 2px dashed #cbd5e0;
-            transition: all 0.3s ease;
+            border: 3px dashed #e2e8f0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            overflow: hidden;
         }
+        
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(66, 153, 225, 0.1), transparent);
+            transition: left 0.6s;
+        }
+        
+        .upload-area:hover::before {
+            left: 100%;
+        }
+        
         .upload-area:hover {
             border-color: #4299e1;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .upload-area.dragover {
-            border-color: #4299e1;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(66, 153, 225, 0.15);
             background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
-            transform: scale(1.02);
+        }
+        
+        .upload-area.dragover {
+            border-color: #3182ce;
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px rgba(66, 153, 225, 0.25);
         }
         
         #cy {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 
+                inset 0 4px 8px rgba(0,0,0,0.06),
+                0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(66, 153, 225, 0.3);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(113, 128, 150, 0.3);
         }
         
         .loading {
@@ -70,53 +131,6 @@
             transition: all 0.2s ease;
         }
         
-        .legend-item {
-            transition: all 0.2s ease;
-        }
-        
-        .legend-item:hover {
-            transform: scale(1.05);
-        }
-        
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.3);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .btn-secondary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(113, 128, 150, 0.3);
-        }
-        
         .stats-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -129,13 +143,6 @@
         .stats-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
-        }
-        
-        .device-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
-            transition: all 0.2s ease;
         }
         
         .search-box {
@@ -152,6 +159,47 @@
             outline: none;
             border-color: #4299e1;
             box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        .network-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background-color: #48bb78;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(72, 187, 120, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0); }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background-color: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4299e1, #667eea);
+            width: 0%;
+            transition: width 0.3s ease;
         }
         
         .tooltip {
@@ -182,62 +230,40 @@
             opacity: 1;
         }
         
-        .network-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+        /* Sidebar Styles */
+        .sidebar-tab {
+            transition: all 0.2s ease;
         }
         
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
+        .sidebar-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateX(2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
         
-        .status-online {
-            background-color: #48bb78;
-            animation: pulse 2s infinite;
+        .sidebar-tab.active .text-gray-900 {
+            color: white !important;
         }
         
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(72, 187, 120, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0); }
+        .sidebar-tab.active .text-gray-500 {
+            color: rgba(255, 255, 255, 0.8) !important;
         }
         
-        .dark-mode {
-            background-color: #1a202c;
-            color: #e2e8f0;
+        .sidebar-tab.active .bg-blue-100,
+        .sidebar-tab.active .bg-green-100,
+        .sidebar-tab.active .bg-purple-100,
+        .sidebar-tab.active .bg-orange-100,
+        .sidebar-tab.active .bg-red-100 {
+            background: rgba(255, 255, 255, 0.2) !important;
         }
         
-        .dark-mode .bg-white {
-            background-color: #2d3748 !important;
+        .tab-content {
+            min-height: 100vh;
         }
         
-        .dark-mode .text-gray-800 {
-            color: #e2e8f0 !important;
-        }
-        
-        .dark-mode .text-gray-600 {
-            color: #a0aec0 !important;
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background-color: #e2e8f0;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4299e1, #667eea);
-            width: 0%;
-            transition: width 0.3s ease;
+        .tab-content.hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -296,7 +322,7 @@
                     <div class="text-xs text-gray-400">
                         <span class="inline-block mr-4">📄 .txt files (Text exports)</span>
                         <span class="inline-block mr-4">📋 .xml files (XML exports)</span>
-                        <span class="inline-block">📦 .pkt files (Binary files - with export guidance)</span>
+                        <span class="inline-block">📦 .pkt files (Automatic conversion)</span>
                     </div>
                 </div>
                 <div id="loadingContent" class="hidden">
@@ -347,120 +373,269 @@
             </div>
         </div>
 
-        <!-- Results Section -->
+        <!-- Results Section with Sidebar Layout -->
         <div id="resultsSection" class="hidden fade-in">
-            <!-- Network Statistics -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="stats-card">
-                    <div class="text-3xl font-bold" id="deviceCount">0</div>
-                    <div class="text-sm opacity-90">Total Devices</div>
-                </div>
-                <div class="stats-card">
-                    <div class="text-3xl font-bold" id="connectionCount">0</div>
-                    <div class="text-sm opacity-90">Connections</div>
-                </div>
-                <div class="stats-card">
-                    <div class="text-3xl font-bold" id="networkHealth">--</div>
-                    <div class="text-sm opacity-90">Network Health</div>
-                </div>
-            </div>
+            <div class="flex h-screen bg-gray-50">
+                <!-- Sidebar Navigation -->
+                <div class="w-64 bg-white shadow-lg">
+                    <div class="p-6 border-b">
+                        <h2 class="text-xl font-bold text-gray-800">Network Analysis</h2>
+                        <p class="text-sm text-gray-600 mt-1">Navigate through views</p>
+                    </div>
+                    
+                    <!-- Navigation Menu -->
+                    <nav class="mt-6">
+                        <div class="px-4 space-y-2">
+                            <button onclick="showTab('overview')" class="sidebar-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 hover:bg-blue-50 transition-colors active" data-tab="overview">
+                                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-blue-600">📊</span>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">Overview</div>
+                                    <div class="text-xs text-gray-500">Stats & Summary</div>
+                                </div>
+                            </button>
 
-            <!-- Network Visualization -->
-            <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-semibold text-gray-800">Network Topology</h2>
-                    <div class="network-controls">
-                        <button id="fitViewBtn" class="btn-secondary tooltip">
-                            🔍 Fit View
-                            <span class="tooltiptext">Fit all nodes in view</span>
-                        </button>
-                        <button id="centerBtn" class="btn-secondary tooltip">
-                            🎯 Center
-                            <span class="tooltiptext">Center the graph</span>
-                        </button>
-                        <button id="layoutBtn" class="btn-secondary tooltip">
-                            🔄 Re-layout
-                            <span class="tooltiptext">Reorganize nodes</span>
-                        </button>
-                        <button id="fullscreenBtn" class="btn-secondary tooltip">
-                            ⛶ Fullscreen
-                            <span class="tooltiptext">Toggle fullscreen view</span>
-                        </button>
-                    </div>
-                </div>
-                <div id="cy" class="w-full h-96 rounded-lg"></div>
-                <div class="mt-6 flex flex-wrap gap-6 text-sm">
-                    <div class="legend-item flex items-center">
-                        <div class="w-5 h-5 bg-blue-500 rounded mr-3 shadow-sm"></div>
-                        <span class="font-medium">Router</span>
-                    </div>
-                    <div class="legend-item flex items-center">
-                        <div class="w-5 h-5 bg-green-500 rounded mr-3 shadow-sm"></div>
-                        <span class="font-medium">Switch</span>
-                    </div>
-                    <div class="legend-item flex items-center">
-                        <div class="w-5 h-5 bg-yellow-500 rounded mr-3 shadow-sm"></div>
-                        <span class="font-medium">PC</span>
-                    </div>
-                    <div class="legend-item flex items-center">
-                        <div class="w-5 h-5 bg-purple-500 rounded mr-3 shadow-sm"></div>
-                        <span class="font-medium">Server</span>
-                    </div>
-                    <div class="legend-item flex items-center">
-                        <div class="w-5 h-5 bg-gray-500 rounded mr-3 shadow-sm"></div>
-                        <span class="font-medium">Other</span>
-                    </div>
-                </div>
-            </div>
+                            <button onclick="showTab('topology')" class="sidebar-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 hover:bg-green-50 transition-colors" data-tab="topology">
+                                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-green-600">🌐</span>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">Network Topology</div>
+                                    <div class="text-xs text-gray-500">Interactive Graph</div>
+                                </div>
+                            </button>
 
-            <!-- Devices Table -->
-            <div class="bg-white rounded-lg shadow-xl p-8 mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-semibold text-gray-800">Network Devices</h2>
-                    <div class="flex items-center space-x-4">
-                        <input type="text" id="deviceSearch" placeholder="Search devices..." class="search-box">
-                        <button id="exportDevicesBtn" class="btn-secondary">📋 Export CSV</button>
-                    </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto">
-                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Device Name</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Type</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">IP Address</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="devicesTableBody" class="bg-white divide-y divide-gray-200">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                            <button onclick="showTab('devices')" class="sidebar-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 hover:bg-purple-50 transition-colors" data-tab="devices">
+                                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-purple-600">🖥️</span>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">Devices</div>
+                                    <div class="text-xs text-gray-500" id="deviceTabCount">0 devices</div>
+                                </div>
+                            </button>
 
-            <!-- Connections Table -->
-            <div class="bg-white rounded-lg shadow-xl p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-semibold text-gray-800">Network Connections</h2>
-                    <div class="flex items-center space-x-4">
-                        <input type="text" id="connectionSearch" placeholder="Search connections..." class="search-box">
-                        <button id="exportConnectionsBtn" class="btn-secondary">📋 Export CSV</button>
+                            <button onclick="showTab('connections')" class="sidebar-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 hover:bg-orange-50 transition-colors" data-tab="connections">
+                                <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-orange-600">🔗</span>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">Connections</div>
+                                    <div class="text-xs text-gray-500" id="connectionTabCount">0 connections</div>
+                                </div>
+                            </button>
+
+                            <button onclick="showTab('analytics')" class="sidebar-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 hover:bg-red-50 transition-colors" data-tab="analytics">
+                                <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-red-600">📈</span>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-gray-900">Analytics</div>
+                                    <div class="text-xs text-gray-500">Health & Metrics</div>
+                                </div>
+                            </button>
+                        </div>
+                    </nav>
+
+                    <!-- Action Buttons -->
+                    <div class="absolute bottom-6 left-6 right-6 space-y-2">
+                        <button id="clearDataBtn" class="w-full btn-secondary text-center">
+                            🗑️ Clear Data
+                        </button>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto">
-                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <tr>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">From Device</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">To Device</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Connection Type</th>
-                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="connectionsTableBody" class="bg-white divide-y divide-gray-200">
-                        </tbody>
-                    </table>
+
+                <!-- Main Content Area -->
+                <div class="flex-1 overflow-auto">
+                    <!-- Overview Tab -->
+                    <div id="overviewTab" class="tab-content p-8">
+                        <div class="mb-8">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Network Overview</h3>
+                            <p class="text-gray-600">Summary of your network topology analysis</p>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="stats-card">
+                                <div class="text-3xl font-bold" id="deviceCount">0</div>
+                                <div class="text-sm opacity-90">Total Devices</div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="text-3xl font-bold" id="connectionCount">0</div>
+                                <div class="text-sm opacity-90">Connections</div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="text-3xl font-bold" id="networkHealth">--</div>
+                                <div class="text-sm opacity-90">Network Health</div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Insights -->
+                        <div class="bg-white rounded-lg shadow-xl p-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">Quick Insights</h4>
+                            <div id="networkInsights" class="space-y-3">
+                                <!-- Insights will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Topology Tab -->
+                    <div id="topologyTab" class="tab-content p-8 hidden">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Network Topology</h3>
+                            <p class="text-gray-600">Interactive visualization of your network structure</p>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-xl p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800">Interactive Graph</h4>
+                                <div class="network-controls">
+                                    <button id="fitViewBtn" class="btn-secondary tooltip">
+                                        🔍 Fit View
+                                        <span class="tooltiptext">Fit all nodes in view</span>
+                                    </button>
+                                    <button id="centerBtn" class="btn-secondary tooltip">
+                                        🎯 Center
+                                        <span class="tooltiptext">Center the graph</span>
+                                    </button>
+                                    <button id="layoutBtn" class="btn-secondary tooltip">
+                                        🔄 Re-layout
+                                        <span class="tooltiptext">Reorganize nodes</span>
+                                    </button>
+                                    <button id="fullscreenBtn" class="btn-secondary tooltip">
+                                        ⛶ Fullscreen
+                                        <span class="tooltiptext">Toggle fullscreen view</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="cy" class="w-full h-96 rounded-lg"></div>
+                            <div class="mt-6 flex flex-wrap gap-6 text-sm">
+                                <div class="legend-item flex items-center">
+                                    <div class="w-5 h-5 bg-blue-500 rounded mr-3 shadow-sm"></div>
+                                    <span class="font-medium">Router</span>
+                                </div>
+                                <div class="legend-item flex items-center">
+                                    <div class="w-5 h-5 bg-green-500 rounded mr-3 shadow-sm"></div>
+                                    <span class="font-medium">Switch</span>
+                                </div>
+                                <div class="legend-item flex items-center">
+                                    <div class="w-5 h-5 bg-yellow-500 rounded mr-3 shadow-sm"></div>
+                                    <span class="font-medium">PC</span>
+                                </div>
+                                <div class="legend-item flex items-center">
+                                    <div class="w-5 h-5 bg-purple-500 rounded mr-3 shadow-sm"></div>
+                                    <span class="font-medium">Server</span>
+                                </div>
+                                <div class="legend-item flex items-center">
+                                    <div class="w-5 h-5 bg-gray-500 rounded mr-3 shadow-sm"></div>
+                                    <span class="font-medium">Other</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Devices Tab -->
+                    <div id="devicesTab" class="tab-content p-8 hidden">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Network Devices</h3>
+                            <p class="text-gray-600">Detailed view of all devices in your network</p>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-xl p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800">Device List</h4>
+                                <div class="flex items-center space-x-4">
+                                    <input type="text" id="deviceSearch" placeholder="Search devices..." class="search-box">
+                                    <button id="exportDevicesBtn" class="btn-secondary">📋 Export CSV</button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full table-auto">
+                                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Device Name</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Type</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">IP Address</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="devicesTableBody" class="bg-white divide-y divide-gray-200">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Connections Tab -->
+                    <div id="connectionsTab" class="tab-content p-8 hidden">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Network Connections</h3>
+                            <p class="text-gray-600">All connections between network devices</p>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-xl p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h4 class="text-lg font-semibold text-gray-800">Connection List</h4>
+                                <div class="flex items-center space-x-4">
+                                    <input type="text" id="connectionSearch" placeholder="Search connections..." class="search-box">
+                                    <button id="exportConnectionsBtn" class="btn-secondary">📋 Export CSV</button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full table-auto">
+                                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">From Device</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">To Device</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Connection Type</th>
+                                            <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="connectionsTableBody" class="bg-white divide-y divide-gray-200">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Tab -->
+                    <div id="analyticsTab" class="tab-content p-8 hidden">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Network Analytics</h3>
+                            <p class="text-gray-600">Detailed analysis and health metrics</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Network Health -->
+                            <div class="bg-white rounded-lg shadow-xl p-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Network Health</h4>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Connectivity Score</span>
+                                        <span class="font-bold text-green-600" id="connectivityScore">--</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Device Diversity</span>
+                                        <span class="font-bold text-blue-600" id="deviceDiversity">--</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Network Density</span>
+                                        <span class="font-bold text-purple-600" id="networkDensity">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Device Distribution -->
+                            <div class="bg-white rounded-lg shadow-xl p-6">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-4">Device Distribution</h4>
+                                <div id="deviceDistribution" class="space-y-3">
+                                    <!-- Distribution chart will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
